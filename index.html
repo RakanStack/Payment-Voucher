@@ -4,16 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>نموذج الصرف</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   :root{
-    --peach:#F8CBAD;     /* رؤوس الجدول والعنوان */
-    --green:#C6E0B4;      /* خلية الإجمالي */
-    --yellow:#FFE699;     /* خلية أمر الصرف + خانة الاعتماد الأولى */
-    --grey:#BFBFBF;       /* خانة الاعتماد الثانية */
-    --l-green:#00B050;    /* حوالات داخلية */
-    --l-rose:#CE5278;     /* حوالات فورية */
-    --l-yellow:#FFFF00;   /* حوالات محلية */
-    --l-blue:#8EA9DB;     /* معتمد */
+    --peach:#F8CBAD; --green:#C6E0B4; --yellow:#FFE699; --grey:#BFBFBF;
+    --l-green:#00B050; --l-rose:#CE5278; --l-yellow:#FFFF00; --l-blue:#8EA9DB;
     --line:#000;
   }
   *{box-sizing:border-box;}
@@ -25,16 +21,17 @@
   .controls{max-width:900px;margin:22px auto;background:#fff;border-radius:14px;
     padding:22px 24px;box-shadow:0 4px 24px rgba(0,0,0,.08);}
   .controls h1{font-size:19px;margin:0 0 4px;}
-  .controls p{margin:0 0 16px;color:#666;font-size:13px;}
+  .controls p{margin:0 0 16px;color:#666;font-size:13px;line-height:1.6;}
   .field label{font-size:13px;font-weight:600;color:#333;display:block;margin-bottom:5px;}
   .field input,.field textarea{font:inherit;font-size:15px;padding:9px 11px;width:100%;
     border:1px solid #d3d7de;border-radius:8px;background:#fbfbfc;color:#111;}
   .field textarea{resize:vertical;min-height:44px;}
   .field input:focus,.field textarea:focus{outline:none;border-color:#7a97d8;background:#fff;}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px 16px;}
-  .rows-head{display:flex;align-items:center;justify-content:space-between;margin:8px 0 8px;}
+  .rows-head{display:flex;align-items:center;justify-content:space-between;margin:8px 0;}
   .rows-head span{font-size:13px;font-weight:700;color:#333;}
   button{font:inherit;cursor:pointer;border:none;border-radius:9px;padding:11px 20px;font-weight:600;}
+  .b-pdf{background:#1f9d55;color:#fff;}
   .b-print{background:#2f6bd8;color:#fff;}
   .b-add{background:#e9edf5;color:#2f4a86;padding:8px 14px;font-size:13px;}
   .b-del{background:#fff;color:#b53b3b;border:1px solid #eecccc;padding:6px 12px;font-size:12px;}
@@ -42,63 +39,63 @@
   .btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px;}
   .item{border:1px solid #e6e8ee;border-radius:10px;padding:14px;margin-bottom:12px;position:relative;}
   .item .del-wrap{position:absolute;left:12px;top:12px;}
+  #status{font-size:13px;color:#1f9d55;margin-top:10px;min-height:18px;}
 
-  /* ===== النموذج (المعاينة/الطباعة) ===== */
-  .sheet{background:#fff;width:277mm;margin:0 auto 40px;padding:12mm 10mm;
-    box-shadow:0 4px 24px rgba(0,0,0,.10);}
-  .layout{display:grid;grid-template-columns:1fr 150px;gap:0;} /* RTL: المسار الأول(1fr)=يمين=الجدول، الثاني(150px)=يسار=الشعارات */
+  /* ===== النموذج ===== */
+  .sheet-wrap{display:flex;justify-content:center;}
+  /* المقاس الطبيعي للنموذج: عريض ومنخفض مثل مخرجات الإكسل */
+  .sheet{background:#fff;width:1000px;padding:6px;}
+  .layout{display:grid;grid-template-columns:1fr 132px;gap:0;}
+  .main{grid-column:1;}
+  .side{grid-column:2;display:flex;flex-direction:column;padding-left:6px;}
 
-  .main{grid-column:1;}   /* الجدول في اليمين */
-  .side{grid-column:2;display:flex;flex-direction:column;padding-inline-end:6px;} /* الشعارات في اليسار */
-
-  .title{background:var(--peach);border:1.1px solid var(--line);text-align:center;
-    font-size:16px;font-weight:700;padding:7px;}
+  .title{background:var(--peach);border:1px solid var(--line);text-align:center;
+    font-size:14px;font-weight:700;padding:5px;}
   table{width:100%;border-collapse:collapse;table-layout:fixed;}
-  th,td{border:1px solid var(--line);padding:5px 5px;font-size:13px;text-align:center;
-    vertical-align:middle;height:26px;overflow:hidden;}
-  thead th{background:var(--peach);font-weight:700;}
+  th,td{border:1px solid var(--line);padding:2px 4px;font-size:12px;text-align:center;
+    vertical-align:middle;height:20px;overflow:hidden;}
+  thead th{background:var(--peach);font-weight:700;font-size:11.5px;line-height:1.15;}
   col.amount{width:10%;} col.desc{width:30%;} col.benef{width:19%;}
   col.dept{width:17%;} col.form{width:9%;} col.status{width:8%;} col.type{width:7%;}
   td.amount{font-weight:700;}
-  td.form{background:var(--yellow);font-weight:700;font-size:12px;}
+  td.form{background:var(--yellow);font-weight:700;font-size:11px;}
 
   .total-row{display:flex;border:1px solid var(--line);border-top:none;}
   .total-row .val{width:10%;background:var(--green);text-align:center;font-weight:700;
-    padding:8px 4px;border-inline-end:1px solid var(--line);}
-  .total-row .lbl{flex:1;text-align:center;font-weight:700;padding:8px;}
+    padding:6px 4px;border-left:1px solid var(--line);font-size:12px;}
+  .total-row .lbl{flex:1;text-align:center;font-weight:700;padding:6px;font-size:12.5px;}
 
-  .approvals{margin-top:24px;display:flex;flex-direction:column;gap:16px;}
-  .apbox{display:flex;border:1px solid var(--line);min-height:46px;}
-  .apbox .tab{width:10%;border-inline-end:1px solid var(--line);}
+  .approvals{margin-top:16px;display:flex;flex-direction:column;gap:10px;}
+  .apbox{display:flex;border:1px solid var(--line);min-height:34px;}
+  .apbox .tab{width:10%;border-left:1px solid var(--line);}
   .apbox .tab.gold{background:var(--yellow);}
   .apbox .tab.grey{background:var(--grey);}
   .apbox .aplbl{flex:1;display:flex;align-items:center;justify-content:flex-start;
-    font-size:13px;font-weight:700;padding:0 14px;}
+    font-size:12px;font-weight:700;padding:0 12px;}
 
-  /* الجانب: مفاتيح الألوان + معتمد */
-  .side .pad-top{height:330px;}          /* دفع الشعارات لأسفل بجانب آخر صفوف الجدول */
-  .legend{display:flex;flex-direction:column;gap:6px;align-items:flex-start;}
-  .opt{display:flex;align-items:center;gap:7px;font-size:12.5px;white-space:nowrap;}
-  .sq{width:26px;height:14px;border:0.8px solid #777;flex:0 0 auto;}
+  .side .pad-top{height:200px;}
+  .legend{display:flex;flex-direction:column;gap:4px;align-items:flex-start;}
+  .opt{display:flex;align-items:center;gap:6px;font-size:11px;white-space:nowrap;}
+  .sq{width:24px;height:12px;border:0.8px solid #777;flex:0 0 auto;}
   .sq.green{background:var(--l-green);} .sq.rose{background:var(--l-rose);}
   .sq.yellow{background:var(--l-yellow);} .sq.blue{background:var(--l-blue);}
-  .side .pad-mid{height:150px;}
-  .approved-opt{display:flex;align-items:center;gap:7px;font-size:12.5px;}
+  .side .pad-mid{height:90px;}
+  .approved-opt{display:flex;align-items:center;gap:6px;font-size:11px;}
 
   @media print{
     body{background:#fff;}
     .controls{display:none;}
-    .sheet{box-shadow:none;margin:0;width:auto;padding:0;}
-    @page{size:A4 landscape;margin:12mm;}
+    .sheet-wrap{display:block;}
+    .sheet{width:auto;padding:0;}
+    @page{size:A4 landscape;margin:10mm;}
   }
 </style>
 </head>
 <body>
 
-  <!-- ========== لوحة الإدخال ========== -->
   <div class="controls">
     <h1>مولّد نموذج الصرف</h1>
-    <p>عبّي الحقول واضغط «حفظ كـ PDF»، ثم اختر «حفظ كـ PDF» من نافذة الطباعة. الإجمالي يُحسب تلقائيًا، وتقدر تضيف أكثر من سطر.</p>
+    <p>عبّي الحقول ثم اضغط <b>«تحميل PDF»</b> — يطلع ملف بصفحة واحدة أفقية جاهز للحفظ أو المشاركة، بدون روابط أو تواريخ. زر «طباعة» بديل يعتمد على المتصفح.</p>
 
     <div class="field" style="margin-bottom:14px;">
       <label>عنوان النموذج</label>
@@ -112,57 +109,60 @@
     <div id="items"></div>
 
     <div class="btns">
-      <button class="b-print" onclick="window.print()">🖨️ حفظ كـ PDF</button>
+      <button class="b-pdf" onclick="downloadPDF()">⬇️ تحميل PDF</button>
+      <button class="b-print" onclick="window.print()">🖨️ طباعة</button>
       <button class="b-reset" onclick="resetAll()">إعادة تعيين</button>
     </div>
+    <div id="status"></div>
   </div>
 
-  <!-- ========== النموذج ========== -->
-  <div class="sheet">
-    <div class="layout">
-      <div class="main">
-        <div class="title" id="pTitle">نموذج الصرف</div>
-        <table>
-          <colgroup>
-            <col class="amount"><col class="desc"><col class="benef"><col class="dept">
-            <col class="form"><col class="status"><col class="type">
-          </colgroup>
-          <thead>
-            <tr>
-              <th>المبلغ</th><th>البيان</th><th>اسم المستفيد</th><th>الإدارة</th>
-              <th>نموذج طلب</th><th>حالة الطلب</th><th>نوع الحوالة</th>
-            </tr>
-          </thead>
-          <tbody id="pBody"></tbody>
-        </table>
+  <div class="sheet-wrap">
+    <div class="sheet" id="sheet">
+      <div class="layout">
+        <div class="main">
+          <div class="title" id="pTitle">نموذج الصرف</div>
+          <table>
+            <colgroup>
+              <col class="amount"><col class="desc"><col class="benef"><col class="dept">
+              <col class="form"><col class="status"><col class="type">
+            </colgroup>
+            <thead>
+              <tr>
+                <th>المبلغ</th><th>البيان</th><th>اسم المستفيد</th><th>الإدارة</th>
+                <th>نموذج طلب</th><th>حالة الطلب</th><th>نوع الحوالة</th>
+              </tr>
+            </thead>
+            <tbody id="pBody"></tbody>
+          </table>
 
-        <div class="total-row">
-          <div class="val" id="pTotal">0</div>
-          <div class="lbl">اجمالي أوامر الصرف</div>
+          <div class="total-row">
+            <div class="val" id="pTotal">0</div>
+            <div class="lbl">اجمالي أوامر الصرف</div>
+          </div>
+
+          <div class="approvals">
+            <div class="apbox"><div class="tab gold"></div><div class="aplbl">اعتماد مسئول الصرف المالي</div></div>
+            <div class="apbox"><div class="tab grey"></div><div class="aplbl">اعتماد رئيس مجلس الإدارة</div></div>
+          </div>
         </div>
 
-        <div class="approvals">
-          <div class="apbox"><div class="tab gold"></div><div class="aplbl">اعتماد مسئول الصرف المالي</div></div>
-          <div class="apbox"><div class="tab grey"></div><div class="aplbl">اعتماد رئيس مجلس الإدارة</div></div>
+        <div class="side">
+          <div class="pad-top"></div>
+          <div class="legend">
+            <div class="opt"><span class="sq green"></span><span>حوالات داخلية</span></div>
+            <div class="opt"><span class="sq rose"></span><span>حوالات فورية لمستفيد</span></div>
+            <div class="opt"><span class="sq yellow"></span><span>حوالات محلية</span></div>
+          </div>
+          <div class="pad-mid"></div>
+          <div class="approved-opt"><span class="sq blue"></span><span>معتمد</span></div>
         </div>
-      </div>
-
-      <div class="side">
-        <div class="pad-top"></div>
-        <div class="legend">
-          <div class="opt"><span class="sq green"></span><span>حوالات داخلية</span></div>
-          <div class="opt"><span class="sq rose"></span><span>حوالات فورية لمستفيد</span></div>
-          <div class="opt"><span class="sq yellow"></span><span>حوالات محلية</span></div>
-        </div>
-        <div class="pad-mid"></div>
-        <div class="approved-opt"><span class="sq blue"></span><span>معتمد</span></div>
       </div>
     </div>
   </div>
 
 <script>
   const itemsEl=document.getElementById('items');
-  const MIN_ROWS=14;
+  const MIN_ROWS=10;
 
   function newItem(v={}){
     const div=document.createElement('div');
@@ -170,7 +170,7 @@
     div.innerHTML=`
       <div class="del-wrap"><button class="b-del" onclick="this.closest('.item').remove();render()">حذف</button></div>
       <div class="grid2">
-        <div class="field"><label>المبلغ</label><input type="number" class="f-amount" oninput="render()" value="${v.amount??''}" placeholder="مثال: 3000"></div>
+        <div class="field"><label>المبلغ</label><input type="number" step="any" class="f-amount" oninput="render()" value="${v.amount??''}" placeholder="مثال: 3000"></div>
         <div class="field"><label>اسم المستفيد</label><input type="text" class="f-benef" oninput="render()" value="${v.benef??''}"></div>
         <div class="field" style="grid-column:1/-1"><label>البيان</label><textarea class="f-desc" oninput="render()" placeholder="وصف الصرف">${v.desc??''}</textarea></div>
         <div class="field"><label>الإدارة</label><input type="text" class="f-dept" oninput="render()" value="${v.dept??''}"></div>
@@ -179,38 +179,67 @@
     itemsEl.appendChild(div);
   }
   function addRow(){newItem();render();}
-
   function esc(s){return (s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])).replace(/\n/g,'<br>');}
+  function num(v){return Number.isInteger(v)?v:parseFloat(v.toFixed(2));}
 
   function render(){
     document.getElementById('pTitle').textContent=document.getElementById('title').value||'نموذج الصرف';
-    const body=document.getElementById('pBody');
-    body.innerHTML='';
+    const body=document.getElementById('pBody'); body.innerHTML='';
     let total=0,count=0;
     document.querySelectorAll('.item').forEach(it=>{
       const amount=parseFloat(it.querySelector('.f-amount').value)||0;
       total+=amount;count++;
-      const desc=it.querySelector('.f-desc').value;
-      const benef=it.querySelector('.f-benef').value;
-      const dept=it.querySelector('.f-dept').value;
-      const form=it.querySelector('.f-form').value;
+      const desc=it.querySelector('.f-desc').value, benef=it.querySelector('.f-benef').value;
+      const dept=it.querySelector('.f-dept').value, form=it.querySelector('.f-form').value;
       const tr=document.createElement('tr');
-      tr.innerHTML=`<td class="amount">${amount?amount:''}</td>
+      tr.innerHTML=`<td class="amount">${amount?num(amount):''}</td>
         <td>${esc(desc)}</td><td>${esc(benef)}</td><td>${esc(dept)}</td>
         <td class="form">${esc(form)}</td><td></td><td></td>`;
       body.appendChild(tr);
     });
-    // صفوف فارغة لإكمال شبكة الجدول كما في الأصل
     for(let i=count;i<MIN_ROWS;i++){
       const tr=document.createElement('tr');
       tr.innerHTML='<td class="amount"></td><td></td><td></td><td></td><td></td><td></td><td></td>';
       body.appendChild(tr);
     }
-    document.getElementById('pTotal').textContent=total;
+    document.getElementById('pTotal').textContent=num(total);
   }
 
   function resetAll(){itemsEl.innerHTML='';newItem();document.getElementById('title').value='نموذج الصرف';render();}
   document.getElementById('title').addEventListener('input',render);
+
+  async function downloadPDF(){
+    const st=document.getElementById('status');
+    const title=(document.getElementById('title').value||'نموذج الصرف').trim();
+    if(typeof html2canvas==='undefined' || !window.jspdf){
+      st.style.color='#b53b3b';
+      st.textContent='تعذّر تحميل مكتبة الـ PDF (تأكد من الاتصال بالإنترنت). جرّب زر «طباعة» بدلها.';
+      return;
+    }
+    st.style.color='#1f9d55'; st.textContent='جاري إنشاء الـ PDF…';
+    try{
+      const sheet=document.getElementById('sheet');
+      const canvas=await html2canvas(sheet,{scale:3,backgroundColor:'#ffffff',useCORS:true});
+      const {jsPDF}=window.jspdf;
+      const pdf=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+      const pageW=pdf.internal.pageSize.getWidth();   // 297
+      const pageH=pdf.internal.pageSize.getHeight();  // 210
+      const margin=8;
+      const availW=pageW-margin*2;
+      let w=availW;
+      let h=canvas.height*(w/canvas.width);
+      const maxH=pageH-margin*2;
+      if(h>maxH){ h=maxH; w=canvas.width*(h/canvas.height); }
+      const x=(pageW-w)/2;
+      const y=margin;   // النموذج بأعلى الصفحة مثل مخرجات الإكسل
+      pdf.addImage(canvas.toDataURL('image/png'),'PNG',x,y,w,h);
+      pdf.save(title.replace(/[\\/:*?"<>|]/g,'_')+'.pdf');
+      st.textContent='تم إنشاء الـ PDF ✅';
+    }catch(e){
+      st.style.color='#b53b3b'; st.textContent='صار خطأ أثناء الإنشاء. جرّب زر «طباعة».';
+      console.error(e);
+    }
+  }
 
   newItem({});
   render();
