@@ -17,8 +17,8 @@
     font-family:Arial,"Helvetica Neue","Segoe UI",sans-serif;
     -webkit-print-color-adjust:exact;print-color-adjust:exact;}
 
-  /* ===== لوحة الإدخال (لا تُطبع) ===== */
-  .controls{max-width:900px;margin:22px auto;background:#fff;border-radius:14px;
+  /* ===== لوحة الإدخال المتوافقة مع الجوال ===== */
+  .controls{max-width:900px;margin:20px auto 10px;background:#fff;border-radius:14px;
     padding:22px 24px;box-shadow:0 4px 24px rgba(0,0,0,.08);}
   .controls h1{font-size:19px;margin:0 0 4px;}
   .controls p{margin:0 0 16px;color:#666;font-size:13px;line-height:1.6;}
@@ -30,44 +30,51 @@
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px 16px;}
   .rows-head{display:flex;align-items:center;justify-content:space-between;margin:8px 0;}
   .rows-head span{font-size:13px;font-weight:700;color:#333;}
-  button{font:inherit;cursor:pointer;border:none;border-radius:9px;padding:11px 20px;font-weight:600;}
-  .b-pdf{background:#1f9d55;color:#fff;}
-  .b-print{background:#2f6bd8;color:#fff;}
+  button{font:inherit;cursor:pointer;border:none;border-radius:9px;font-weight:600;transition: opacity 0.2s;}
+  button:active{opacity: 0.8;}
+  .b-pdf{background:#1f9d55;color:#fff;padding:14px 22px;font-size:16px;width:100%;}
   .b-add{background:#e9edf5;color:#2f4a86;padding:8px 14px;font-size:13px;}
   .b-del{background:#fff;color:#b53b3b;border:1px solid #eecccc;padding:6px 12px;font-size:12px;}
-  .b-reset{background:#f2f2f4;color:#555;}
-  .btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px;}
   .item{border:1px solid #e6e8ee;border-radius:10px;padding:14px;margin-bottom:12px;position:relative;}
   .item .del-wrap{position:absolute;left:12px;top:12px;}
-  #status{font-size:13px;color:#1f9d55;margin-top:10px;min-height:18px;}
+  #status{font-size:13px;color:#1f9d55;margin-top:10px;min-height:18px;text-align:center;}
 
-  /* ===== النموذج ===== */
-  .sheet-wrap{display:flex;justify-content:center;}
-  /* المقاس الطبيعي للنموذج: عريض ومنخفض مثل مخرجات الإكسل */
-  .sheet{background:#fff;width:1000px;padding:6px;}
+  /* دعم الجوال للوحة التحكم */
+  @media (max-width: 600px) {
+    .controls { margin: 10px; padding: 16px; }
+    .grid2 { grid-template-columns: 1fr; gap: 10px; }
+    .item .del-wrap { position: static; text-align: left; margin-bottom: 8px; }
+  }
+
+  /* ===== المعاينة (تُصغَّر بصريًا فقط وتلائم الجوال) ===== */
+  .preview{max-width:1000px;margin:0 auto 40px;overflow:hidden; padding: 0 10px;}
+
+  /* النموذج: عرض ثابت 1000px دائمًا حتى لا ينكمش على الجوال أثناء إنشاء الـ PDF */
+  .sheet{background:#fff;width:1000px;flex-shrink:0;padding:6px;transform-origin:top right;}
   .layout{display:grid;grid-template-columns:1fr 132px;gap:0;}
   .main{grid-column:1;}
   .side{grid-column:2;display:flex;flex-direction:column;padding-left:6px;}
 
-  .title{background:var(--peach);border:1px solid var(--line);text-align:center;
-    font-size:14px;font-weight:700;padding:5px;}
   table{width:100%;border-collapse:collapse;table-layout:fixed;}
   th,td{border:1px solid var(--line);padding:2px 4px;font-size:12px;text-align:center;
     vertical-align:middle;height:20px;overflow:hidden;}
-  thead th{background:var(--peach);font-weight:700;font-size:11.5px;line-height:1.15;}
-  col.amount{width:10%;} col.desc{width:30%;} col.benef{width:19%;}
-  col.dept{width:17%;} col.form{width:9%;} col.status{width:8%;} col.type{width:7%;}
+  thead th{background:var(--peach);font-weight:700;font-size:11px;line-height:1.3;white-space:normal;}
+  
+  /* توزيع الأعمدة ليناسب إضافة التاريخ ويكون المجموع 100% */
+  col.amount{width:7%;} col.desc{width:23%;} col.benef{width:16%;}
+  col.dept{width:16%;} col.form{width:9%;} col.status{width:10%;} col.type{width:9%;} col.date{width:10%;}
+  
   td.amount{font-weight:700;}
   td.form{background:var(--yellow);font-weight:700;font-size:11px;}
 
   .total-row{display:flex;border:1px solid var(--line);border-top:none;}
-  .total-row .val{width:10%;background:var(--green);text-align:center;font-weight:700;
+  .total-row .val{width:7%;background:var(--green);text-align:center;font-weight:700;
     padding:6px 4px;border-left:1px solid var(--line);font-size:12px;}
   .total-row .lbl{flex:1;text-align:center;font-weight:700;padding:6px;font-size:12.5px;}
 
   .approvals{margin-top:16px;display:flex;flex-direction:column;gap:10px;}
   .apbox{display:flex;border:1px solid var(--line);min-height:34px;}
-  .apbox .tab{width:10%;border-left:1px solid var(--line);}
+  .apbox .tab{width:7%;border-left:1px solid var(--line);}
   .apbox .tab.gold{background:var(--yellow);}
   .apbox .tab.grey{background:var(--grey);}
   .apbox .aplbl{flex:1;display:flex;align-items:center;justify-content:flex-start;
@@ -81,23 +88,15 @@
   .sq.yellow{background:var(--l-yellow);} .sq.blue{background:var(--l-blue);}
   .side .pad-mid{height:90px;}
   .approved-opt{display:flex;align-items:center;gap:6px;font-size:11px;}
-
-  @media print{
-    body{background:#fff;}
-    .controls{display:none;}
-    .sheet-wrap{display:block;}
-    .sheet{width:auto;padding:0;}
-    @page{size:A4 landscape;margin:10mm;}
-  }
 </style>
 </head>
 <body>
 
   <div class="controls">
     <h1>مولّد نموذج الصرف</h1>
-    <p>عبّي الحقول ثم اضغط <b>«تحميل PDF»</b> — يطلع ملف بصفحة واحدة أفقية جاهز للحفظ أو المشاركة، بدون روابط أو تواريخ. زر «طباعة» بديل يعتمد على المتصفح.</p>
+    <p>عبّي الحقول ثم اضغط <b>«تحميل PDF»</b> — يطلع ملف بصفحة واحدة أفقية جاهز ومطابق للصورة.</p>
 
-    <div class="field" style="margin-bottom:14px;">
+    <div class="field" style="margin-bottom:14px; display:none;">
       <label>عنوان النموذج</label>
       <input type="text" id="title" value="نموذج الصرف">
     </div>
@@ -108,28 +107,29 @@
     </div>
     <div id="items"></div>
 
-    <div class="btns">
-      <button class="b-pdf" onclick="downloadPDF()">⬇️ تحميل PDF</button>
-      <button class="b-print" onclick="window.print()">🖨️ طباعة</button>
-      <button class="b-reset" onclick="resetAll()">إعادة تعيين</button>
-    </div>
+    <button class="b-pdf" onclick="downloadPDF()">⬇️ تحميل PDF</button>
     <div id="status"></div>
   </div>
 
-  <div class="sheet-wrap">
+  <div class="preview">
     <div class="sheet" id="sheet">
       <div class="layout">
         <div class="main">
-          <div class="title" id="pTitle">نموذج الصرف</div>
           <table>
             <colgroup>
               <col class="amount"><col class="desc"><col class="benef"><col class="dept">
-              <col class="form"><col class="status"><col class="type">
+              <col class="form"><col class="status"><col class="type"><col class="date">
             </colgroup>
             <thead>
               <tr>
-                <th>المبلغ</th><th>البيان</th><th>اسم المستفيد</th><th>الإدارة</th>
-                <th>نموذج طلب</th><th>حالة الطلب</th><th>نوع الحوالة</th>
+                <th><span id="pTitle">نموذج الصرف</span><br>المبلغ</th>
+                <th>البيان</th>
+                <th>اسم المستفيد</th>
+                <th>الإدارة</th>
+                <th>نموذج طلب</th>
+                <th>حالة الطلب</th>
+                <th>نوع الحوالة</th>
+                <th>التاريخ</th>
               </tr>
             </thead>
             <tbody id="pBody"></tbody>
@@ -142,7 +142,7 @@
 
           <div class="approvals">
             <div class="apbox"><div class="tab gold"></div><div class="aplbl">اعتماد مسئول الصرف المالي</div></div>
-            <div class="apbox"><div class="tab grey"></div><div class="aplbl">اعتماد رئيس مجلس الإدارة</div></div>
+            <div class="apbox"><div class="tab grey"></div><div class="aplbl">اعتماد الرئيس التنفيذي</div></div>
           </div>
         </div>
 
@@ -164,6 +164,10 @@
   const itemsEl=document.getElementById('items');
   const MIN_ROWS=10;
 
+  // جلب تاريخ اليوم ليكون افتراضياً في الحقل الجديد
+  const d = new Date();
+  const todayStr = d.getDate() + '/' + (d.getMonth() + 1) + '/' + d.getFullYear();
+
   function newItem(v={}){
     const div=document.createElement('div');
     div.className='item';
@@ -171,10 +175,11 @@
       <div class="del-wrap"><button class="b-del" onclick="this.closest('.item').remove();render()">حذف</button></div>
       <div class="grid2">
         <div class="field"><label>المبلغ</label><input type="number" step="any" class="f-amount" oninput="render()" value="${v.amount??''}" placeholder="مثال: 3000"></div>
+        <div class="field"><label>التاريخ</label><input type="text" class="f-date" oninput="render()" value="${v.date?? todayStr}" placeholder="مثال: 6/7/2026"></div>
         <div class="field"><label>اسم المستفيد</label><input type="text" class="f-benef" oninput="render()" value="${v.benef??''}"></div>
-        <div class="field" style="grid-column:1/-1"><label>البيان</label><textarea class="f-desc" oninput="render()" placeholder="وصف الصرف">${v.desc??''}</textarea></div>
         <div class="field"><label>الإدارة</label><input type="text" class="f-dept" oninput="render()" value="${v.dept??''}"></div>
         <div class="field"><label>نموذج طلب</label><input type="text" class="f-form" oninput="render()" value="${v.form??'امر صرف'}"></div>
+        <div class="field" style="grid-column:1/-1"><label>البيان</label><textarea class="f-desc" oninput="render()" placeholder="وصف الصرف">${v.desc??''}</textarea></div>
       </div>`;
     itemsEl.appendChild(div);
   }
@@ -189,60 +194,74 @@
     document.querySelectorAll('.item').forEach(it=>{
       const amount=parseFloat(it.querySelector('.f-amount').value)||0;
       total+=amount;count++;
+      const date=it.querySelector('.f-date').value;
       const desc=it.querySelector('.f-desc').value, benef=it.querySelector('.f-benef').value;
       const dept=it.querySelector('.f-dept').value, form=it.querySelector('.f-form').value;
       const tr=document.createElement('tr');
+      // أضفنا التاريخ في الخلية الأخيرة من الصف
       tr.innerHTML=`<td class="amount">${amount?num(amount):''}</td>
         <td>${esc(desc)}</td><td>${esc(benef)}</td><td>${esc(dept)}</td>
-        <td class="form">${esc(form)}</td><td></td><td></td>`;
+        <td class="form">${esc(form)}</td><td></td><td></td><td>${esc(date)}</td>`;
       body.appendChild(tr);
     });
     for(let i=count;i<MIN_ROWS;i++){
       const tr=document.createElement('tr');
-      tr.innerHTML='<td class="amount"></td><td></td><td></td><td></td><td></td><td></td><td></td>';
+      // تمت زيادة عدد الأعمدة الفارغة لتصبح 8 بدل 7
+      tr.innerHTML='<td class="amount"></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>';
       body.appendChild(tr);
     }
     document.getElementById('pTotal').textContent=num(total);
+    fitPreview();
   }
 
-  function resetAll(){itemsEl.innerHTML='';newItem();document.getElementById('title').value='نموذج الصرف';render();}
-  document.getElementById('title').addEventListener('input',render);
+  /* تصغير النموذج بصريًا ليناسب عرض الشاشة للجوال */
+  function fitPreview(){
+    const sheet=document.getElementById('sheet');
+    const prev=document.querySelector('.preview');
+    sheet.style.transform='none';
+    const natH=sheet.offsetHeight;
+    // حساب نسبة التصغير بناءً على عرض حاوية المعاينة
+    const scale=Math.min(1, prev.clientWidth/1000);
+    sheet.style.transform='scale('+scale+')';
+    prev.style.height=(natH*scale)+'px';
+  }
+  window.addEventListener('resize',fitPreview);
 
   async function downloadPDF(){
     const st=document.getElementById('status');
     const title=(document.getElementById('title').value||'نموذج الصرف').trim();
     if(typeof html2canvas==='undefined' || !window.jspdf){
       st.style.color='#b53b3b';
-      st.textContent='تعذّر تحميل مكتبة الـ PDF (تأكد من الاتصال بالإنترنت). جرّب زر «طباعة» بدلها.';
+      st.textContent='تعذّر تحميل مكتبة الـ PDF — تأكد من الاتصال بالإنترنت وأعد المحاولة.';
       return;
     }
     st.style.color='#1f9d55'; st.textContent='جاري إنشاء الـ PDF…';
+    const sheet=document.getElementById('sheet');
     try{
-      const sheet=document.getElementById('sheet');
-      const canvas=await html2canvas(sheet,{scale:3,backgroundColor:'#ffffff',useCORS:true});
+      sheet.style.transform='none'; // إرجاع الحجم الكامل لالتقاط الصورة بجودة عالية 1000px
+      await new Promise(r=>requestAnimationFrame(r));
+      const h=sheet.offsetHeight;
+      const canvas=await html2canvas(sheet,{scale:3,backgroundColor:'#ffffff',
+                    width:1000,height:h,windowWidth:1000,useCORS:true});
       const {jsPDF}=window.jspdf;
       const pdf=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
-      const pageW=pdf.internal.pageSize.getWidth();   // 297
-      const pageH=pdf.internal.pageSize.getHeight();  // 210
-      const margin=8;
-      const availW=pageW-margin*2;
-      let w=availW;
-      let h=canvas.height*(w/canvas.width);
-      const maxH=pageH-margin*2;
-      if(h>maxH){ h=maxH; w=canvas.width*(h/canvas.height); }
-      const x=(pageW-w)/2;
-      const y=margin;   // النموذج بأعلى الصفحة مثل مخرجات الإكسل
-      pdf.addImage(canvas.toDataURL('image/png'),'PNG',x,y,w,h);
+      const pageW=pdf.internal.pageSize.getWidth(), pageH=pdf.internal.pageSize.getHeight();
+      const margin=8, availW=pageW-margin*2, maxH=pageH-margin*2;
+      let w=availW, hh=canvas.height*(w/canvas.width);
+      if(hh>maxH){ hh=maxH; w=canvas.width*(hh/canvas.height); }
+      pdf.addImage(canvas.toDataURL('image/png'),'PNG',(pageW-w)/2,margin,w,hh);
       pdf.save(title.replace(/[\\/:*?"<>|]/g,'_')+'.pdf');
       st.textContent='تم إنشاء الـ PDF ✅';
     }catch(e){
-      st.style.color='#b53b3b'; st.textContent='صار خطأ أثناء الإنشاء. جرّب زر «طباعة».';
+      st.style.color='#b53b3b'; st.textContent='صار خطأ أثناء الإنشاء، حاول مرة ثانية.';
       console.error(e);
-    }
+    }finally{ fitPreview(); }
   }
 
+  document.getElementById('title').addEventListener('input',render);
   newItem({});
   render();
+  window.addEventListener('load',fitPreview);
 </script>
 </body>
 </html>
